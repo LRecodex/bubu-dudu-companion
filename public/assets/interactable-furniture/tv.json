@@ -1,0 +1,14 @@
+{
+  "name": "tv",
+  "source": "tv-4x2-frame.png",
+  "layout": "grid",
+  "columns": 4,
+  "rows": 2,
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "frameCount": 8,
+  "sheetWidth": 2048,
+  "sheetHeight": 256,
+  "scale": 0.537129,
+  "baselineY": 236
+}

@@ -1,0 +1,157 @@
+{
+  "source": "default-furniture-5x5-frame.png",
+  "columns": 5,
+  "rows": 5,
+  "entries": [
+    {
+      "name": "row-1-variant-1",
+      "row": 0,
+      "variant": 0,
+      "file": "row-1-variant-1.png"
+    },
+    {
+      "name": "row-1-variant-2",
+      "row": 0,
+      "variant": 1,
+      "file": "row-1-variant-2.png"
+    },
+    {
+      "name": "row-1-variant-3",
+      "row": 0,
+      "variant": 2,
+      "file": "row-1-variant-3.png"
+    },
+    {
+      "name": "row-1-variant-4",
+      "row": 0,
+      "variant": 3,
+      "file": "row-1-variant-4.png"
+    },
+    {
+      "name": "row-1-variant-5",
+      "row": 0,
+      "variant": 4,
+      "file": "row-1-variant-5.png"
+    },
+    {
+      "name": "row-2-variant-1",
+      "row": 1,
+      "variant": 0,
+      "file": "row-2-variant-1.png"
+    },
+    {
+      "name": "row-2-variant-2",
+      "row": 1,
+      "variant": 1,
+      "file": "row-2-variant-2.png"
+    },
+    {
+      "name": "row-2-variant-3",
+      "row": 1,
+      "variant": 2,
+      "file": "row-2-variant-3.png"
+    },
+    {
+      "name": "row-2-variant-4",
+      "row": 1,
+      "variant": 3,
+      "file": "row-2-variant-4.png"
+    },
+    {
+      "name": "row-2-variant-5",
+      "row": 1,
+      "variant": 4,
+      "file": "row-2-variant-5.png"
+    },
+    {
+      "name": "row-3-variant-1",
+      "row": 2,
+      "variant": 0,
+      "file": "row-3-variant-1.png"
+    },
+    {
+      "name": "row-3-variant-2",
+      "row": 2,
+      "variant": 1,
+      "file": "row-3-variant-2.png"
+    },
+    {
+      "name": "row-3-variant-3",
+      "row": 2,
+      "variant": 2,
+      "file": "row-3-variant-3.png"
+    },
+    {
+      "name": "row-3-variant-4",
+      "row": 2,
+      "variant": 3,
+      "file": "row-3-variant-4.png"
+    },
+    {
+      "name": "row-3-variant-5",
+      "row": 2,
+      "variant": 4,
+      "file": "row-3-variant-5.png"
+    },
+    {
+      "name": "row-4-variant-1",
+      "row": 3,
+      "variant": 0,
+      "file": "row-4-variant-1.png"
+    },
+    {
+      "name": "row-4-variant-2",
+      "row": 3,
+      "variant": 1,
+      "file": "row-4-variant-2.png"
+    },
+    {
+      "name": "row-4-variant-3",
+      "row": 3,
+      "variant": 2,
+      "file": "row-4-variant-3.png"
+    },
+    {
+      "name": "row-4-variant-4",
+      "row": 3,
+      "variant": 3,
+      "file": "row-4-variant-4.png"
+    },
+    {
+      "name": "row-4-variant-5",
+      "row": 3,
+      "variant": 4,
+      "file": "row-4-variant-5.png"
+    },
+    {
+      "name": "row-5-variant-1",
+      "row": 4,
+      "variant": 0,
+      "file": "row-5-variant-1.png"
+    },
+    {
+      "name": "row-5-variant-2",
+      "row": 4,
+      "variant": 1,
+      "file": "row-5-variant-2.png"
+    },
+    {
+      "name": "row-5-variant-3",
+      "row": 4,
+      "variant": 2,
+      "file": "row-5-variant-3.png"
+    },
+    {
+      "name": "row-5-variant-4",
+      "row": 4,
+      "variant": 3,
+      "file": "row-5-variant-4.png"
+    },
+    {
+      "name": "row-5-variant-5",
+      "row": 4,
+      "variant": 4,
+      "file": "row-5-variant-5.png"
+    }
+  ]
+}

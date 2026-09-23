@@ -4,6 +4,37 @@ import { resolve } from 'node:path';
 import electronUpdater from 'electron-updater';
 
 const WINDOW = { width: 280, height: 320 };
+let roomWindow: BrowserWindow | undefined;
+let shopWindow: BrowserWindow | undefined;
+function positionShop() {
+  if (!roomWindow || !shopWindow) return;
+  const room = roomWindow.getBounds(), area = screen.getDisplayMatching(room).workArea;
+  const panel = shopWindow.getBounds();
+  const x = room.x + room.width + panel.width + 10 <= area.x + area.width ? room.x + room.width + 10 : room.x - panel.width - 10;
+  shopWindow.setPosition(Math.max(area.x, x), Math.max(area.y, Math.min(room.y, area.y + area.height - panel.height)));
+}
+ipcMain.handle('companion:open-shop', async event => {
+  if (senderWindow(event) !== roomWindow) return;
+  if (shopWindow) { shopWindow.show(); shopWindow.focus(); return; }
+  shopWindow = new BrowserWindow({ width: 300, height: 460, frame: false, resizable: false, show: false,
+    backgroundColor: '#fff7eb', parent: roomWindow, autoHideMenuBar: true,
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true,
+      preload: fileURLToPath(new URL('../preload/preload.cjs', import.meta.url)) } });
+  positionShop();
+  shopWindow.setAlwaysOnTop(roomWindow.isAlwaysOnTop());
+  shopWindow.on('closed', () => { shopWindow = undefined; roomWindow?.webContents.send('room-command', { type: 'cancel' }); });
+  shopWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  shopWindow.webContents.on('will-navigate', e => e.preventDefault());
+  shopWindow.once('ready-to-show', () => shopWindow?.show());
+  if (process.env.ELECTRON_RENDERER_URL) await shopWindow.loadURL(`${process.env.ELECTRON_RENDERER_URL}#shop`);
+  else await shopWindow.loadFile(fileURLToPath(new URL('../renderer/index.html', import.meta.url)), { hash: 'shop' });
+});
+ipcMain.on('room-command', (event, command) => {
+  if (senderWindow(event) !== shopWindow || !command || !['sync', 'buy', 'place', 'store', 'cancel'].includes(command.type)) return;
+  roomWindow?.webContents.send('room-command', command);
+});
+ipcMain.on('room-state', (event, state) => { if (senderWindow(event) === roomWindow) shopWindow?.webContents.send('room-state', state); });
+ipcMain.handle('companion:close-shop', event => { if (senderWindow(event) === shopWindow) shopWindow?.close(); });
 const UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 
 function startAutoUpdater() {
@@ -68,6 +99,10 @@ async function createWindow() {
     },
   });
   window.once('ready-to-show', () => window.show());
+  roomWindow = window;
+  window.on('move', positionShop);
+  window.on('always-on-top-changed', (_event, value) => shopWindow?.setAlwaysOnTop(value));
+  window.on('closed', () => { shopWindow?.destroy(); shopWindow = undefined; roomWindow = undefined; });
   window.webContents.on('context-menu', () => {
     Menu.buildFromTemplate([{ label: 'Quit BDC', click: () => app.quit() }]).popup({ window });
   });

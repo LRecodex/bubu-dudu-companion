@@ -1,0 +1,53 @@
+import { _electron as electron } from 'playwright';
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
+const app = await electron.launch({ args: ['.'], env });
+let original, page;
+try {
+  page = await app.firstWindow(); await page.locator('canvas').waitFor();
+  const errors = [], messages = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('console', m => { messages.push(m.text()); if (m.type() === 'error') errors.push(m.text()); });
+  original = await page.evaluate(() => localStorage.getItem('bdc-room-v1'));
+  await page.evaluate(() => localStorage.removeItem('bdc-room-v1'));
+  await page.reload(); await page.locator('canvas').waitFor();
+  const opened = app.waitForEvent('window');
+  await page.getByRole('button', { name: 'Shop and inventory', exact: true }).click();
+  const shop = await opened;
+  shop.on('pageerror', e => errors.push(e.message));
+  await shop.getByRole('button', { name: '30 coins', exact: true }).waitFor();
+  const bounds = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().sort((a, b) => Number(a.webContents.getURL().endsWith('#shop')) - Number(b.webContents.getURL().endsWith('#shop'))).map(w => w.getBounds()));
+  assert.equal(bounds.length, 2);
+  assert.ok(Math.abs(bounds[0].width - 280) <= 4);
+  assert.ok(bounds[1].x + bounds[1].width <= bounds[0].x || bounds[1].x >= bounds[0].x + bounds[0].width);
+  assert.equal(await shop.locator('canvas').count(), 0);
+  await shop.getByRole('button', { name: '30 coins', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.room-button').textContent.includes('120 coins'));
+  assert.match(await shop.locator('.coin-balance').textContent(), /^120 coins/);
+  await shop.getByRole('button', { name: 'Inventory', exact: true }).click();
+  await shop.getByRole('button', { name: 'Place', exact: true }).click();
+  await page.locator('.placement-hint').waitFor();
+  const canvas = await page.locator('canvas').boundingBox();
+  await page.mouse.click(canvas.x + 220 / 440 * canvas.width, canvas.y + 340 / 500 * canvas.height);
+  await shop.getByRole('button', { name: 'Move', exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('bdc-room-v1')).placed.length), 1);
+  await shop.getByRole('button', { name: 'Store', exact: true }).click();
+  await shop.getByRole('button', { name: 'Place', exact: true }).waitFor();
+  // Observe genuine autonomous TV entry and exit, without clicking furniture.
+  const deadline = Date.now() + 90000;
+  while (!messages.some(m => /^\[BDC\] TV (bubu|dudu)/.test(m)) && Date.now() < deadline) await page.waitForTimeout(500);
+  assert.ok(messages.some(m => /^\[BDC\] TV (bubu|dudu)/.test(m)), 'No automatic TV activity');
+  await mkdir('runtime-debug', { recursive: true });
+  await page.screenshot({ path: 'runtime-debug/room-larger-auto-tv.png' });
+  await shop.screenshot({ path: 'runtime-debug/shop-separate-window.png' });
+  await shop.getByRole('button', { name: 'Close shop' }).click();
+  assert.equal(await page.getByRole('button', { name: 'Shop and inventory' }).count(), 1);
+  await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('bdc-room-v1')); s.earnedAt = Date.now() - 120100; localStorage.setItem('bdc-room-v1', JSON.stringify(s)); });
+  await page.reload(); await page.waitForFunction(() => document.querySelector('.room-button')?.textContent.includes('130 coins'));
+  assert.deepEqual(errors, []);
+  console.log('PASS: original room size, non-overlapping shop window, synchronized coins, buying, placement, storage, automatic TV, passive earnings; no renderer errors.');
+} finally {
+  if (page && !page.isClosed() && original !== undefined) await page.evaluate(value => { if (value === null) localStorage.removeItem('bdc-room-v1'); else localStorage.setItem('bdc-room-v1', value); }, original);
+  await app.close();
+}

@@ -41,7 +41,9 @@ try {
     const prefs = window.webContents.getLastWebPreferences();
     return { visible: window.isVisible(), size: window.getSize(), contextIsolation: prefs.contextIsolation, nodeIntegration: prefs.nodeIntegration, sandbox: prefs.sandbox };
   });
-  assert.deepEqual(state, { visible: true, size: [280, 320], contextIsolation: true, nodeIntegration: false, sandbox: true });
+  // Windows rounds native bounds at fractional display scaling.
+  assert.ok(Math.abs(state.size[0] - 280) <= 4 && Math.abs(state.size[1] - 320) <= 4);
+  assert.deepEqual({ ...state, size: undefined }, { visible: true, size: undefined, contextIsolation: true, nodeIntegration: false, sandbox: true });
   assert.equal(await page.locator('canvas').count(), 1);
   for (const character of ['bubu', 'dudu']) assert.ok(messages.includes(`[BDC] ${character}-idle loop verified`));
   await mkdir('runtime-debug', { recursive: true });

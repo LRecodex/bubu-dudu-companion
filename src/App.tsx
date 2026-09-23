@@ -1,6 +1,7 @@
 import { PhaserGame } from './game/PhaserGame';
 import { Settings } from './Settings';
 import { Actions } from './Actions';
+import { RoomControls } from './RoomControls';
 
 export default function App() {
   return <main>
@@ -9,6 +10,7 @@ export default function App() {
       <div className="move-handle" title="Drag to move the room. Right-click the room to quit." aria-label="Drag to move the room">✥</div>
       <Settings />
       <Actions />
+      <RoomControls />
     </div>
   </main>;
 }

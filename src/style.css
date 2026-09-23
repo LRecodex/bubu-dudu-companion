@@ -24,3 +24,26 @@ button:focus-visible { outline: 2px solid #96735b; outline-offset: 2px; }
 .game-host { width: 100%; height: 100%; overflow: hidden; }
 .game-host canvas { display: block; }
 .game-error { position: absolute; inset: 24px; background: #f5f3ef; padding: 24px; color: #8a2929; }
+.room-button { border: 1px solid #99857b; border-radius: 9px; background: #fff0df; color: #574940; font-size: 11px; white-space: nowrap; cursor: pointer; }
+.room-dialog { width: 258px; max-height: calc(100vh - 20px); padding: 12px; overflow-y: auto; }
+.room-dialog .settings-heading { margin-bottom: 8px; }
+.room-dialog nav { display: flex; gap: 4px; }
+.room-dialog nav button, .catalog button, .placement-hint button { border: 1px solid #bd9b89; border-radius: 6px; padding: 5px; background: #f7e9dc; color: #574940; cursor: pointer; }
+.room-dialog nav button[aria-pressed=true] { background: #96735b; color: white; }
+.room-dialog .coin-balance, .room-dialog .tv-status { color: #574940; font-size: 11px; }
+.catalog article { display: flex; align-items: center; gap: 8px; border-top: 1px solid #e5d5c5; padding: 5px 0; }
+.catalog img { width: 65px; height: 65px; object-fit: contain; }
+.catalog strong { display: block; font-size: 12px; margin-bottom: 4px; }
+.catalog button { font-size: 11px; margin-right: 3px; }
+button:disabled { opacity: .5; cursor: default; }
+.placement-hint { position: fixed; bottom: 32px; left: 8px; width: 260px; padding: 7px; background: #fff7eb; border: 1px solid #99857b; border-radius: 8px; font-size: 11px; }
+.shop-window { padding: 14px; background: #fff7eb; border: 2px solid #99857b; border-radius: 12px; }
+.shop-heading { display: flex; justify-content: space-between; align-items: center; -webkit-app-region: drag; }
+.shop-heading h2 { margin: 0; font-size: 19px; }
+.shop-heading button { -webkit-app-region: no-drag; border: 0; background: transparent; color: #77655e; font-size: 26px; cursor: pointer; }
+.shop-window nav { display: flex; gap: 6px; margin-top: 10px; }
+.shop-window nav button { flex: 1; padding: 8px; background: #f7e9dc; border: 1px solid #bd9b89; border-radius: 8px; color: #574940; cursor: pointer; }
+.shop-window nav button[aria-pressed=true] { background: #96735b; color: white; }
+.shop-window .coin-balance { font-size: 13px; margin: 12px 0 4px; }
+.shop-help { font-size: 12px; margin: 4px 0 10px; color: #77655e; }
+.shop-window .catalog { overflow-y: auto; min-height: 0; flex: 1; }

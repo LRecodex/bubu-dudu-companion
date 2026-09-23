@@ -1,6 +1,6 @@
 {
   "name": "bdc-companion",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "A tiny animated Bubu and Dudu desktop companion.",
   "author": "LRecodex",
@@ -18,6 +18,8 @@
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:room": "node scripts/room-smoke.mjs",
+    "import:furniture": "node scripts/import-furniture.mjs assets/furniture/default-furniture-5x5-frame.png public/assets/furniture 5 5 0,202,430,630,814,1024",
     "release:win": "npm run build && electron-builder --win nsis --publish always"
   },
   "dependencies": {
@@ -35,6 +37,7 @@
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "playwright": "^1.63.0",
+    "sharp": "^0.35.4",
     "typescript": "^7.0.2",
     "vite": "^7.3.6"
   },
