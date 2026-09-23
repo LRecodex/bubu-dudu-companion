@@ -18,7 +18,7 @@ export function RoomControls() {
     const ready = () => { gameEvents.emit('furniture-layout', current.current.placed); gameEvents.emit('room-appearance', normalizeAppearance(current.current.appearance)); };
     const placed = (p: Placement) => {
       const item = furniture.find(f => f.id === p.id);
-      if (!item || !current.current.owned.includes(p.id) || !validPosition(item, p.x, p.y)) return;
+      if (!item || !current.current.owned.includes(p.id) || !validPosition(item, p.x, p.y, item.wall ? 0 : p.rotation ?? 0)) return;
       commit({ ...current.current, placed: [...current.current.placed.filter(f => f.id !== p.id), p] });
 
     };
@@ -53,7 +53,7 @@ export function ShopWindow() {
     <header className="shop-heading"><h2>Your room</h2><button aria-label="Close shop" onClick={() => window.companion.closeShop()}>×</button></header>
     <nav>{['Shop', 'Inventory', 'Colors'].map(t => <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>{t}</button>)}</nav>
     <p className="coin-balance">{save?.coins ?? '…'} coins · +5 per minute</p>
-    <p className="shop-help">{tab === 'Shop' ? 'Pick something cozy for your room.' : tab === 'Inventory' ? 'Click to place ? Scroll to rotate ? Right-click to cancel.' : 'Choose wall and floor finishes. All colors and designs are free.'}</p>
+    <p className="shop-help">{tab === 'Shop' ? 'Pick something cozy for your room.' : tab === 'Inventory' ? 'Click to place; Scroll to rotate; F to flip; Right-click to cancel. Windows and doors fit either wall automatically.' : 'Choose wall and floor finishes. All colors and designs are free.'}</p>
     {tab === 'Colors' && save && <div className="catalog finishes">{(['wall', 'floor'] as const).map(surface => <section key={surface}><h3>{surface === 'wall' ? 'Wall' : 'Floor'} color</h3><div className="swatches">{Object.entries(colors).map(([name, color]) => <button key={name} title={name} aria-label={`${surface} ${name}`} aria-pressed={normalizeAppearance(save.appearance)[`${surface}Color`] === color} style={{ background: color }} onClick={() => command('appearance', `${surface}Color:${color}`)} />)}</div><h3>{surface === 'wall' ? 'Wall' : 'Floor'} design</h3><div className="designs">{designs.map(design => <button key={design} aria-pressed={normalizeAppearance(save.appearance)[`${surface}Design`] === design} onClick={() => command('appearance', `${surface}Design:${design}`)}>{design}</button>)}</div></section>)}</div>}
     <div className="catalog" hidden={tab === 'Colors'}>{save && furniture.filter(f => tab === 'Shop' || save.owned.includes(f.id)).map(f => {
       const owned = save.owned.includes(f.id), placed = save.placed.some(p => p.id === f.id);

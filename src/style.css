@@ -54,3 +54,5 @@ button:disabled { opacity: .5; cursor: default; }
 .finishes button[aria-pressed=true] { outline: 2px solid #574940; outline-offset: 1px; }
 .designs button { padding: 8px; }
 .catalog[hidden] { display: none; }
+
+.settings-dialog { max-height: calc(100vh - 24px); overflow-y: auto; box-sizing: border-box; }

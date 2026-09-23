@@ -6,7 +6,7 @@ import {
 } from '../config';
 import { gameEvents } from '../events';
 import { drawTemporaryRoom } from './temporaryRoom';
-import { furniture, validPosition, lounge, inLounge, type Placement, type Appearance } from '../furniture';
+import { furniture, validPosition, furnitureFlipped, lounge, inLounge, type Placement, type Appearance } from '../furniture';
 
 interface Companion {
   name: Character;
@@ -45,6 +45,8 @@ export class RoomScene extends Phaser.Scene {
   private placement?: string;
   private roomShell?: Phaser.GameObjects.Graphics;
   private rotation = 0;
+  private flipped?: boolean;
+  private lastPet = 0;
   private preview?: Phaser.GameObjects.Image;
 
   constructor(private readonly onError: (message: string) => void) { super('RoomScene'); }
@@ -134,6 +136,7 @@ export class RoomScene extends Phaser.Scene {
       // A stagger keeps the two from changing state in lockstep.
       companion.timer = this.time.delayedCall(3500 + index * 900, () => this.nextState(companion));
       this.enter(companion, 'idle');
+      sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.pet(companion));
       sprite.once(Phaser.Animations.Events.ANIMATION_REPEAT, () => console.info(`[BDC] ${key} loop verified`));
     }
 
@@ -141,6 +144,7 @@ export class RoomScene extends Phaser.Scene {
       .setVisible(false).setDepth(1000);
 
     gameEvents.on('play-interaction', this.startInteraction, this);
+    gameEvents.on('room-activity', this.activity, this);
     gameEvents.on('furniture-layout', this.renderFurniture, this);
     gameEvents.on('room-appearance', this.renderAppearance, this);
     gameEvents.on('place-furniture', this.beginPlacement, this);
@@ -152,25 +156,54 @@ export class RoomScene extends Phaser.Scene {
       const item = furniture.find(f => f.id === this.placement)!;
       const { x, y } = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
       if (!this.canPlace(item.id, x, y)) return;
-      gameEvents.emit('furniture-placed', { id: item.id, x, y, rotation: this.rotation });
+      gameEvents.emit('furniture-placed', { id: item.id, x, y, rotation: this.rotation, flipped: this.flipped });
       this.beginPlacement(undefined);
     });
     this.input.mouse?.disableContextMenu();
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
-      if (!this.preview || !dy) return;
+      if (!this.preview || !dy || furniture.find(f => f.id === this.placement)?.wall) return;
       this.rotation = (this.rotation + (dy > 0 ? 15 : -15) + 360) % 360;
-      this.preview.setAngle(this.rotation);
+      this.movePreview(this.input.activePointer);
+    });
+    this.input.keyboard?.on('keydown-F', () => {
+      const item = furniture.find(f => f.id === this.placement);
+      if (!item || item.wall || !this.preview) return;
+      this.flipped = !this.preview.flipX; this.movePreview(this.input.activePointer);
     });
     this.input.keyboard?.on('keydown-ESC', () => { this.beginPlacement(undefined); gameEvents.emit('placement-cancelled'); });
     gameEvents.emit('room-ready');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       gameEvents.off('play-interaction', this.startInteraction, this);
+      gameEvents.off('room-activity', this.activity, this);
       gameEvents.off('furniture-layout', this.renderFurniture, this);
       gameEvents.off('room-appearance', this.renderAppearance, this);
       gameEvents.off('place-furniture', this.beginPlacement, this);
       gameEvents.emit('interaction-state', false);
     });
     console.info('[BDC] RoomScene ready');
+  }
+
+  private pet(companion: Companion) {
+    if (this.placement || this.busy || this.time.now - this.lastPet < 700) return;
+    this.lastPet = this.time.now;
+    this.rest(companion);
+    this.enter(companion, 'idle');
+    const heart = this.add.text(companion.sprite.x, companion.sprite.y - 55, '\u2665', { fontSize: '26px', color: '#e77691' }).setOrigin(.5).setDepth(2100);
+    this.tweens.add({ targets: heart, y: heart.y - 40, alpha: 0, duration: 1100, onComplete: () => heart.destroy() });
+    companion.timer = this.time.delayedCall(2200, () => this.nextState(companion));
+  }
+
+  private activity(kind: string) {
+    if (this.busy || this.placement) return;
+    if (kind === 'surprise') { this.startInteraction(Phaser.Math.RND.pick([...interactions]).key); return; }
+    if (kind === 'tv') { this.watchTV(this.watchers.size === 2 ? [] : [...characters]); return; }
+    if (kind !== 'nap' && kind !== 'wake') return;
+    this.watchTV([]);
+    for (const companion of this.companions) {
+      this.rest(companion);
+      this.enter(companion, kind === 'nap' ? 'sleep' : 'idle');
+      companion.timer = this.time.delayedCall(kind === 'nap' ? 30000 : 1200, () => this.nextState(companion));
+    }
   }
 
   private renderAppearance(appearance?: Appearance) {
@@ -206,17 +239,17 @@ export class RoomScene extends Phaser.Scene {
 
   private renderFurniture(placed: Placement[]) {
     this.decorations.forEach(image => image.destroy());
-    this.layout = placed.filter(p => { const item = furniture.find(f => f.id === p.id); return item && validPosition(item, p.x, p.y); });
+    this.layout = placed.filter(p => { const item = furniture.find(f => f.id === p.id); return item && validPosition(item, p.x, p.y, item.wall ? 0 : p.rotation ?? 0); });
     this.decorations = this.layout.map(p => {
       const item = furniture.find(f => f.id === p.id)!;
-      return this.add.image(p.x, p.y, p.id).setDisplaySize(item.width, item.width).setOrigin(.5, 1)
-        .setAngle(p.rotation ?? 0).setDepth(item.category === 'Rug' ? 1 : item.wall ? 2 : p.y);
+      return this.add.image(p.x, p.y, p.id).setDisplaySize(item.width, item.width).setOrigin(.5, item.category === 'Rug' ? .5 : 1)
+        .setFlipX(furnitureFlipped(item, p)).setAngle(item.wall ? 0 : p.rotation ?? 0).setDepth(item.category === 'Rug' ? 1 : item.wall ? 2 : p.y);
     });
   }
 
   private canPlace(id: string, x: number, y: number) {
     const item = furniture.find(f => f.id === id);
-    return !!item && validPosition(item, x, y) && this.layout.every(p => {
+    return !!item && validPosition(item, x, y, this.rotation) && this.layout.every(p => {
       const other = furniture.find(f => f.id === p.id)!;
       return p.id === id || item.category === 'Rug' || other.category === 'Rug' || item.wall !== other.wall || Math.hypot((p.x - x) / ((item.width + other.width) * .4), (p.y - y) / 30) >= 1;
     });
@@ -227,14 +260,17 @@ export class RoomScene extends Phaser.Scene {
     this.placement = furniture.some(f => f.id === id) ? id : undefined;
     if (!this.placement) return;
     const item = furniture.find(f => f.id === id)!;
-    this.rotation = this.layout.find(p => p.id === id)?.rotation ?? 0;
-    this.preview = this.add.image(640, 450, item.id).setOrigin(.5, 1).setDisplaySize(item.width, item.width).setDepth(2000).setAlpha(.65).setAngle(this.rotation);
+    this.rotation = item.wall ? 0 : this.layout.find(p => p.id === id)?.rotation ?? 0;
+    this.flipped = item.wall ? undefined : this.layout.find(p => p.id === id)?.flipped;
+    this.preview = this.add.image(640, 450, item.id).setOrigin(.5, item.category === 'Rug' ? .5 : 1).setDisplaySize(item.width, item.width).setDepth(2000).setAlpha(.65).setAngle(this.rotation);
     this.movePreview(this.input.activePointer);
   }
 
   private movePreview(pointer: Phaser.Input.Pointer) {
     if (!this.preview || !this.placement) return;
     const { x, y } = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    const item = furniture.find(f => f.id === this.placement)!;
+    this.preview.setAngle(this.rotation).setFlipX(furnitureFlipped(item, { id: item.id, x, y, flipped: this.flipped }));
     this.preview.setPosition(x, y).setTint(this.canPlace(this.placement, x, y) ? 0x99ffbb : 0xff8888);
   }
 

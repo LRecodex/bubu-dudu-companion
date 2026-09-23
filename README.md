@@ -57,3 +57,11 @@ Update the version in `package.json` and `package-lock.json`, add notes to `CHAN
 ## License
 
 [MIT](LICENSE)
+
+## Decorating and play
+
+Use Shop to buy furniture, then Inventory to place or move it. Rugs use their centre as the placement point and can sit near the front of the floor. Windows and doors automatically face the left or right wall; fireplaces also adjust their facing on the right. Scroll to rotate floor furniture, press F to flip it, and right-click or press Escape to cancel. Placements and facing are saved.
+
+Open the play menu for TV time, a shared nap, wake up, or a surprise interaction. Click either companion while they are on the floor to pet them and release a heart.
+
+Run `npm test` for placement geometry, `npm run smoke:placement` for both-wall placement and new activities, and `npm run smoke:room` for shop and room persistence (after building).

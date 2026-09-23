@@ -5,7 +5,7 @@ export const furniture = ['Rug', 'Plant', 'Window', 'Door', 'Fireplace'].flatMap
     width: [100, 48, 90, 64, 88][row], wall: row === 2 || row === 3,
   })));
 export type Furniture = typeof furniture[number];
-export interface Placement { id: string; x: number; y: number; rotation?: number }
+export interface Placement { id: string; x: number; y: number; rotation?: number; flipped?: boolean }
 // A compact seating corner aligned along the room's NE/SW axis.
 // Shared footprints keep roaming and decoration placement in sync with artwork.
 export const lounge = {
@@ -39,11 +39,28 @@ export function buy(save: RoomSave, id: string): RoomSave {
   if (!item || save.owned.includes(id) || save.coins < item.price) return save;
   return { ...save, coins: save.coins - item.price, owned: [...save.owned, id] };
 }
-export function validPosition(item: Furniture, x: number, y: number) {
-  if (item.wall) return x >= 485 && x <= 606 && y >= 300 && y <= 385 && Math.abs(y - (655 - x * .577)) < 38;
-  if (Math.abs(x - 640) / 190 + Math.abs(y - 450) / 110 > .72) return false;
-  if (item.category === 'Rug') return true;
-  return !inLounge(x, y, 8);
+export function rightWall(x: number) { return x > 640; }
+export function furnitureFlipped(item: Furniture, p: Placement) {
+  return p.flipped ?? ((item.wall || item.category === 'Fireplace') && rightWall(p.x));
+}
+export function validPosition(item: Furniture, x: number, y: number, rotation = 0) {
+  if (![x, y, rotation].every(Number.isFinite)) return false;
+  if (item.wall) {
+    const half = item.width / 2;
+    const left = x <= 640;
+    if (x < (left ? 450 : 640) + half || x > (left ? 640 : 830) - half) return false;
+    const base = 340 + Math.abs(x - 640) * 110 / 190;
+    return y <= base + half * 110 / 190 - 4 && y >= base - 190 + item.width - half * 110 / 190 + 4;
+  }
+  // Test the actual floor footprint, not a shrunken diamond of anchor points.
+  const rug = item.category === 'Rug';
+  const w = item.width * (rug ? .5 : .32), h = item.width * (rug ? .30 : .13);
+  const angle = rotation * Math.PI / 180;
+  return [[-w, 0], [w, 0], [0, -h], [0, h]].every(([dx, dy]) => {
+    const px = x + dx * Math.cos(angle) - dy * Math.sin(angle);
+    const py = y + dx * Math.sin(angle) + dy * Math.cos(angle);
+    return Math.abs(px - 640) / 190 + Math.abs(py - 450) / 110 <= .99;
+  }) && (rug || !inLounge(x, y, 8));
 }
 
 export const colors = { Cream: '#fff0df', Sage: '#b9cbb0', Sky: '#b8d5e5', Rose: '#e8bcc0', Sand: '#f0ddbd', Walnut: '#ad805e' };

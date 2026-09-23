@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { interactions, type Interaction } from './game/config';
-import { onInteractionState, playInteraction } from './game/events';
+import { gameEvents, onInteractionState, playInteraction } from './game/events';
 
 export function Actions() {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -26,6 +26,9 @@ export function Actions() {
       <div className="action-list">
         {interactions.map(({ key, label }) =>
           <button key={key} className="action-item" onClick={() => play(key)}>{label}</button>)}
+        {([['tv', 'TV time / stop TV'], ['nap', 'Nap together'], ['wake', 'Wake up'], ['surprise', 'Surprise me!']] as const).map(([key, label]) =>
+          <button key={key} className="action-item" onClick={() => { dialog.current?.close(); gameEvents.emit('room-activity', key); }}>{label}</button>)}
+        <p>Click Bubu or Dudu in the room to give them a heart.</p>
       </div>
     </dialog>
   </>;
