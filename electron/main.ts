@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, screen, ipcMain, type IpcMainInvokeEvent } from 'electron';
 import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import electronUpdater from 'electron-updater';
 
 const WINDOW = { width: 280, height: 320 };
@@ -13,11 +14,14 @@ function startAutoUpdater() {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.on('error', error => console.error('Auto-update failed:', error));
+  autoUpdater.on('update-downloaded', () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
 
   const check = () => void autoUpdater.checkForUpdatesAndNotify().catch(error => {
     console.error('Unable to check for updates:', error);
   });
-  setTimeout(check, 10_000);
+  setTimeout(check, 3_000);
   setInterval(check, UPDATE_INTERVAL_MS);
 }
 
@@ -41,11 +45,15 @@ ipcMain.handle('companion:close', event => { senderWindow(event); app.quit(); })
 
 async function createWindow() {
   const area = screen.getPrimaryDisplay().workArea;
+  const icon = process.env.ELECTRON_RENDERER_URL
+    ? resolve(app.getAppPath(), 'public/assets/logo/logo.png')
+    : fileURLToPath(new URL('../renderer/assets/logo/logo.png', import.meta.url));
   const window = new BrowserWindow({
     ...WINDOW,
     x: area.x + area.width - WINDOW.width - 32,
     y: area.y + area.height - WINDOW.height - 32,
     title: 'BDC — Bubu Dudu Companion',
+    icon,
     backgroundColor: '#00000000',
     transparent: true,
     frame: false,

@@ -1,6 +1,6 @@
 {
   "name": "bdc-companion",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A tiny animated Bubu and Dudu desktop companion.",
   "author": "LRecodex",
@@ -42,10 +42,16 @@
     "appId": "com.lrecodex.bubududucompanion",
     "productName": "Bubu Dudu Companion",
     "asar": true,
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "package.json"],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
     "win": {
       "target": "nsis",
+      "icon": "public/assets/logo/logo.ico",
       "artifactName": "Bubu-Dudu-Companion-Setup-${version}.${ext}"
     },
     "nsis": {
