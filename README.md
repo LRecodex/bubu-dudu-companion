@@ -33,22 +33,22 @@ npm.cmd start
 
 Create an NSIS installer with `npm.cmd run dist:win`. Artifacts are written to `release/`; the installer, blockmap, and `latest.yml` must remain attached to a public GitHub Release for automatic updates.
 
-The existing sprite tools remain their own package. On a fresh checkout, run `npm.cmd --prefix tools ci` before tests/type checks or preprocessing. Runtime code reads generated JSON metadata and only loads processed sprites from `public/assets/characters/`.
+Sprite preprocessing is now a separate desktop app at `C:\Users\FauzulAzim\Documents\Tools\preprocessor-sprite`. Runtime code reads generated JSON metadata and only loads processed sprites from `public/assets/characters/`.
 
 Main files: `electron/main.ts` (window/security), `electron.vite.config.ts` (build/dev), `src/App.tsx` (React UI), `src/game/PhaserGame.tsx` (lifecycle), `src/game/scenes/RoomScene.ts` (temporary room, the random wander loop and interaction playback), `src/game/config.ts` (animation lists, room geometry and display scaling), and `src/game/events.ts` (the one React-to-Phaser channel). A restricted preload bridge exposes only reading/changing Always on top and closing the app; renderer Node access remains disabled.
 
 Click the gear beside the move handle to open Settings. **Always on top** applies immediately and lasts until you quit; it defaults to off on a fresh launch. **Close app** quits BDC. Close the panel using its × button or Escape. Restart the development app after updates to the main process or preload.
 
-The standalone sprite preprocessing package lives in [tools/](tools/). See the [sprite preprocessing guide](docs/sprite-preprocessing.md) for setup, adding new animations, debugging, configuration, and Phaser usage.
+The standalone sprite preprocessing app has its own UI for choosing one or many source PNGs, configuring auto/grid detection, and selecting the output directory. See the [sprite preprocessing guide](docs/sprite-preprocessing.md).
 
-From this directory:
+Launch it independently:
 
 ```powershell
-npm.cmd --prefix tools run sprites
-npm.cmd --prefix tools run sprites -- --debug
+cd C:\Users\FauzulAzim\Documents\Tools\preprocessor-sprite
+npm.cmd run dev
 ```
 
-Original artwork stays in `assets/`. Game-ready PNGs and metadata are generated in `public/assets/characters/`; diagnostics go to `sprite-debug/`. The reference image is never processed as a sprite sheet.
+To update this project, select source artwork from `assets/` and choose the relevant folder under `public/assets/characters/` as the output. The source artwork is never modified.
 
 ## Release process
 

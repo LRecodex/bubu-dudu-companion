@@ -16,9 +16,7 @@
     "build": "npm run typecheck && electron-vite build",
     "dist:win": "npm run build && electron-builder --win nsis",
     "start": "electron-vite preview",
-    "typecheck": "tsc --noEmit && npm --prefix tools run typecheck",
-    "test": "npm --prefix tools test",
-    "sprites": "npm --prefix tools run sprites",
+    "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
     "release:win": "npm run build && electron-builder --win nsis --publish always"
   },
