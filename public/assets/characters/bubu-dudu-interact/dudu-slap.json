@@ -1,0 +1,11 @@
+{
+  "character": "bubu-dudu-interact",
+  "animation": "dudu-slap",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "frameCount": 6,
+  "sheetWidth": 1536,
+  "sheetHeight": 256,
+  "scale": 0.568063,
+  "baselineY": 236
+}

@@ -1,0 +1,66 @@
+{
+  "name": "bdc-companion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tiny animated Bubu and Dudu desktop companion.",
+  "author": "LRecodex",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LRecodex/bubu-dudu-companion.git"
+  },
+  "type": "module",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit && npm --prefix tools run typecheck",
+    "test": "npm --prefix tools test",
+    "sprites": "npm --prefix tools run sprites",
+    "smoke": "node scripts/smoke.mjs",
+    "release:win": "npm run build && electron-builder --win nsis --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "phaser": "^3.90.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^44.4.4",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "playwright": "^1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.6"
+  },
+  "build": {
+    "appId": "com.lrecodex.bubududucompanion",
+    "productName": "Bubu Dudu Companion",
+    "asar": true,
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "package.json"],
+    "win": {
+      "target": "nsis",
+      "artifactName": "Bubu-Dudu-Companion-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Bubu Dudu Companion"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "LRecodex",
+      "repo": "bubu-dudu-companion"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "character": "dudu",
+  "animation": "sleep",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "frameCount": 8,
+  "sheetWidth": 2048,
+  "sheetHeight": 256,
+  "scale": 0.830769,
+  "baselineY": 236
+}
