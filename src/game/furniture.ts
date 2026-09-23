@@ -5,7 +5,7 @@ export const furniture = ['Rug', 'Plant', 'Window', 'Door', 'Fireplace'].flatMap
     width: [100, 48, 90, 64, 88][row], wall: row === 2 || row === 3,
   })));
 export type Furniture = typeof furniture[number];
-export interface Placement { id: string; x: number; y: number }
+export interface Placement { id: string; x: number; y: number; rotation?: number }
 // A compact seating corner aligned along the room's NE/SW axis.
 // Shared footprints keep roaming and decoration placement in sync with artwork.
 export const lounge = {
@@ -15,7 +15,7 @@ export const lounge = {
 export function inLounge(x: number, y: number, padding = 0) {
   return Object.values(lounge).some(f => Math.abs(x - f.x) < f.halfWidth + padding && Math.abs(y - (f.y - 8)) < f.halfDepth + padding);
 }
-export interface RoomSave { coins: number; earnedAt: number; owned: string[]; placed: Placement[] }
+export interface RoomSave { coins: number; earnedAt: number; owned: string[]; placed: Placement[]; appearance?: Appearance }
 const key = 'bdc-room-v1';
 export const coinInterval = 60_000;
 export function loadRoom(): RoomSave {
@@ -25,7 +25,7 @@ export function loadRoom(): RoomSave {
     if (!value || !Number.isSafeInteger(value.coins) || value.coins < 0 || !Number.isFinite(value.earnedAt) || !Array.isArray(value.owned) || !Array.isArray(value.placed)) return fresh;
     const owned = [...new Set<string>(value.owned.filter((id: unknown) => furniture.some(f => f.id === id)))];
     const placed = value.placed.filter((p: Placement, index: number, all: Placement[]) => p && owned.includes(p.id) && Number.isFinite(p.x) && Number.isFinite(p.y) && all.findIndex(q => q?.id === p.id) === index);
-    return { coins: value.coins, earnedAt: Math.min(Date.now(), value.earnedAt), owned, placed };
+    return { coins: value.coins, earnedAt: Math.min(Date.now(), value.earnedAt), owned, placed: placed.map((p: Placement) => ({ ...p, rotation: Number.isFinite(p.rotation) ? p.rotation : 0 })), appearance: normalizeAppearance(value.appearance) };
   } catch { return fresh; }
 }
 export function accrue(save: RoomSave, now = Date.now()): RoomSave {
@@ -44,4 +44,13 @@ export function validPosition(item: Furniture, x: number, y: number) {
   if (Math.abs(x - 640) / 190 + Math.abs(y - 450) / 110 > .72) return false;
   if (item.category === 'Rug') return true;
   return !inLounge(x, y, 8);
+}
+
+export const colors = { Cream: '#fff0df', Sage: '#b9cbb0', Sky: '#b8d5e5', Rose: '#e8bcc0', Sand: '#f0ddbd', Walnut: '#ad805e' };
+export const designs = ['Plain', 'Wood', 'Tiles', 'Stripes'] as const;
+export interface Appearance { wallColor: string; floorColor: string; wallDesign: typeof designs[number]; floorDesign: typeof designs[number] }
+export const defaultAppearance: Appearance = { wallColor: colors.Cream, floorColor: colors.Sand, wallDesign: 'Plain', floorDesign: 'Wood' };
+export function normalizeAppearance(value?: Partial<Appearance>): Appearance {
+  return Object.fromEntries(Object.entries(defaultAppearance).map(([key, fallback]) => [key,
+    (key.endsWith('Color') ? Object.values(colors) : designs).includes(value?.[key as keyof Appearance] as never) ? value![key as keyof Appearance] : fallback])) as unknown as Appearance;
 }

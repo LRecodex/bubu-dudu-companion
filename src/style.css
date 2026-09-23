@@ -47,3 +47,10 @@ button:disabled { opacity: .5; cursor: default; }
 .shop-window .coin-balance { font-size: 13px; margin: 12px 0 4px; }
 .shop-help { font-size: 12px; margin: 4px 0 10px; color: #77655e; }
 .shop-window .catalog { overflow-y: auto; min-height: 0; flex: 1; }
+
+.finishes h3 { font-size: 13px; margin: 12px 0 8px; }
+.swatches, .designs { display: flex; flex-wrap: wrap; gap: 6px; }
+.swatches button { width: 32px; height: 32px; border-radius: 50%; }
+.finishes button[aria-pressed=true] { outline: 2px solid #574940; outline-offset: 1px; }
+.designs button { padding: 8px; }
+.catalog[hidden] { display: none; }

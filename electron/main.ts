@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, screen, ipcMain, type IpcMainInvokeEvent } from 'electron';
+import { app, BrowserWindow, dialog, screen, ipcMain, type IpcMainInvokeEvent } from 'electron';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import electronUpdater from 'electron-updater';
@@ -30,7 +30,7 @@ ipcMain.handle('companion:open-shop', async event => {
   else await shopWindow.loadFile(fileURLToPath(new URL('../renderer/index.html', import.meta.url)), { hash: 'shop' });
 });
 ipcMain.on('room-command', (event, command) => {
-  if (senderWindow(event) !== shopWindow || !command || !['sync', 'buy', 'place', 'store', 'cancel'].includes(command.type)) return;
+  if (senderWindow(event) !== shopWindow || !command || !['sync', 'buy', 'place', 'store', 'cancel', 'appearance'].includes(command.type)) return;
   roomWindow?.webContents.send('room-command', command);
 });
 ipcMain.on('room-state', (event, state) => { if (senderWindow(event) === roomWindow) shopWindow?.webContents.send('room-state', state); });
@@ -43,13 +43,20 @@ function startAutoUpdater() {
   const { autoUpdater } = electronUpdater;
   autoUpdater.logger = console;
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.on('error', error => console.error('Auto-update failed:', error));
-  autoUpdater.on('update-downloaded', () => {
-    autoUpdater.quitAndInstall(false, true);
+  let prompting = false;
+  autoUpdater.on('update-downloaded', async info => {
+    if (prompting) return;
+    prompting = true;
+    try {
+      const options = { type: 'info' as const, title: 'BDC update ready', message: `Version ${info.version} is ready to install.`, detail: 'Proceed to update will close and restart Bubu Dudu Companion. Choose Later to keep your room open.', buttons: ['Proceed to update', 'Later'], defaultId: 1, cancelId: 1, noLink: true };
+      const result = roomWindow ? await dialog.showMessageBox(roomWindow, options) : await dialog.showMessageBox(options);
+      if (result.response === 0) autoUpdater.quitAndInstall(false, true);
+    } finally { prompting = false; }
   });
 
-  const check = () => void autoUpdater.checkForUpdatesAndNotify().catch(error => {
+  const check = () => void autoUpdater.checkForUpdates().catch(error => {
     console.error('Unable to check for updates:', error);
   });
   setTimeout(check, 3_000);
@@ -103,9 +110,6 @@ async function createWindow() {
   window.on('move', positionShop);
   window.on('always-on-top-changed', (_event, value) => shopWindow?.setAlwaysOnTop(value));
   window.on('closed', () => { shopWindow?.destroy(); shopWindow = undefined; roomWindow = undefined; });
-  window.webContents.on('context-menu', () => {
-    Menu.buildFromTemplate([{ label: 'Quit BDC', click: () => app.quit() }]).popup({ window });
-  });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', event => event.preventDefault());
   window.webContents.on('render-process-gone', (_event, details) => console.error('Renderer exited:', details.reason));

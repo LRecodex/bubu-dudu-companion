@@ -6,7 +6,7 @@ import {
 } from '../config';
 import { gameEvents } from '../events';
 import { drawTemporaryRoom } from './temporaryRoom';
-import { furniture, validPosition, lounge, inLounge, type Placement } from '../furniture';
+import { furniture, validPosition, lounge, inLounge, type Placement, type Appearance } from '../furniture';
 
 interface Companion {
   name: Character;
@@ -43,6 +43,8 @@ export class RoomScene extends Phaser.Scene {
   private decorations: Phaser.GameObjects.Image[] = [];
   private layout: Placement[] = [];
   private placement?: string;
+  private roomShell?: Phaser.GameObjects.Graphics;
+  private rotation = 0;
   private preview?: Phaser.GameObjects.Image;
 
   constructor(private readonly onError: (message: string) => void) { super('RoomScene'); }
@@ -105,7 +107,7 @@ export class RoomScene extends Phaser.Scene {
   create() {
     // Tight viewport around the existing room, preserving all artwork coordinates.
     this.cameras.main.setScroll(420, 130);
-    drawTemporaryRoom(this);
+    this.renderAppearance();
     this.tv = this.add.sprite(lounge.tv.x, lounge.tv.y, 'tv', 0).setOrigin(.5, 236 / 256).setScale(lounge.tv.scale).setDepth(lounge.tv.y);
     this.sofa = this.add.sprite(lounge.sofa.x, lounge.sofa.y, 'sofa', 0).setOrigin(.5, 236 / 256).setScale(lounge.sofa.scale).setDepth(lounge.sofa.y);
     this.anims.create({ key: 'tv-start', frames: this.anims.generateFrameNumbers('tv', { start: 1, end: 7 }), frameRate: 5, repeat: 0 });
@@ -140,25 +142,40 @@ export class RoomScene extends Phaser.Scene {
 
     gameEvents.on('play-interaction', this.startInteraction, this);
     gameEvents.on('furniture-layout', this.renderFurniture, this);
+    gameEvents.on('room-appearance', this.renderAppearance, this);
     gameEvents.on('place-furniture', this.beginPlacement, this);
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => this.movePreview(pointer));
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (!this.placement || document.querySelector('dialog[open]')) return;
+      if (pointer.rightButtonDown()) { this.beginPlacement(undefined); gameEvents.emit('placement-cancelled'); return; }
+      if (!pointer.leftButtonDown()) return;
       const item = furniture.find(f => f.id === this.placement)!;
       const { x, y } = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
       if (!this.canPlace(item.id, x, y)) return;
-      gameEvents.emit('furniture-placed', { id: item.id, x, y });
+      gameEvents.emit('furniture-placed', { id: item.id, x, y, rotation: this.rotation });
       this.beginPlacement(undefined);
+    });
+    this.input.mouse?.disableContextMenu();
+    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
+      if (!this.preview || !dy) return;
+      this.rotation = (this.rotation + (dy > 0 ? 15 : -15) + 360) % 360;
+      this.preview.setAngle(this.rotation);
     });
     this.input.keyboard?.on('keydown-ESC', () => { this.beginPlacement(undefined); gameEvents.emit('placement-cancelled'); });
     gameEvents.emit('room-ready');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       gameEvents.off('play-interaction', this.startInteraction, this);
       gameEvents.off('furniture-layout', this.renderFurniture, this);
+      gameEvents.off('room-appearance', this.renderAppearance, this);
       gameEvents.off('place-furniture', this.beginPlacement, this);
       gameEvents.emit('interaction-state', false);
     });
     console.info('[BDC] RoomScene ready');
+  }
+
+  private renderAppearance(appearance?: Appearance) {
+    this.roomShell?.destroy();
+    this.roomShell = drawTemporaryRoom(this, appearance).setDepth(0);
   }
 
   private watchTV(names: string[]) {
@@ -193,7 +210,7 @@ export class RoomScene extends Phaser.Scene {
     this.decorations = this.layout.map(p => {
       const item = furniture.find(f => f.id === p.id)!;
       return this.add.image(p.x, p.y, p.id).setDisplaySize(item.width, item.width).setOrigin(.5, 1)
-        .setDepth(item.category === 'Rug' ? 1 : item.wall ? 2 : p.y);
+        .setAngle(p.rotation ?? 0).setDepth(item.category === 'Rug' ? 1 : item.wall ? 2 : p.y);
     });
   }
 
@@ -210,7 +227,8 @@ export class RoomScene extends Phaser.Scene {
     this.placement = furniture.some(f => f.id === id) ? id : undefined;
     if (!this.placement) return;
     const item = furniture.find(f => f.id === id)!;
-    this.preview = this.add.image(640, 450, item.id).setOrigin(.5, 1).setDisplaySize(item.width, item.width).setDepth(2000).setAlpha(.65);
+    this.rotation = this.layout.find(p => p.id === id)?.rotation ?? 0;
+    this.preview = this.add.image(640, 450, item.id).setOrigin(.5, 1).setDisplaySize(item.width, item.width).setDepth(2000).setAlpha(.65).setAngle(this.rotation);
     this.movePreview(this.input.activePointer);
   }
 

@@ -6,7 +6,9 @@ TV watching is automatic, alongside idle, walking, and sleeping. Each character 
 
 New rooms start with 150 coins. Earn 5 coins per minute, including up to 8 hours away. Coins, purchases, and placements are saved locally on this device. Each variant can be purchased once, moved, and stored without losing ownership. TV watching is temporary and resets on launch.
 
-In Inventory, choose Place or Move, then click a green location in the room. Red indicates an invalid or occupied position. Windows and doors go on the left wall; other objects go on the floor. Rugs can sit beneath furniture. Cancel or Escape exits placement. The TV and sofa remain a fixed facing pair.
+In Inventory, choose Place or Move, then click a green location in the room. Red indicates an invalid or occupied position. Windows and doors go on the left wall; other objects go on the floor. Rugs can sit beneath furniture. Right-click or Escape exits placement without an overlay. Scroll rotates the item in 15-degree steps; orientation is saved. The TV and sofa remain a fixed facing pair.
+
+The built-in window and glass door have been removed; use inventory items. The shop Colors tab provides six free wall/floor colors and four procedural designs for each surface: Plain, Wood, Tiles, and Stripes. Finishes are saved locally.
 
 ## Importing the 5×5 sheet
 

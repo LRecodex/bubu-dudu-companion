@@ -4,7 +4,7 @@ A tiny animated desktop companion starring Bubu (white) and Dudu (brown). They w
 
 ## Install
 
-Download `Bubu-Dudu-Companion-Setup-*.exe` from the [latest release](https://github.com/LRecodex/bubu-dudu-companion/releases/latest), run it, and follow the prompts. The app checks for updates after launch and every four hours; downloaded updates install after the app exits.
+Download `Bubu-Dudu-Companion-Setup-*.exe` from the [latest release](https://github.com/LRecodex/bubu-dudu-companion/releases/latest), run it, and follow the prompts. The app checks for updates after launch and every four hours; downloaded updates show a prompt with Proceed to update and Later. The app only closes to install when you choose Proceed.
 
 > Windows may show a SmartScreen warning because the installer is not currently code-signed. Verify that it came from this repository's Releases page before continuing.
 
